@@ -1,7 +1,3 @@
-
-# Loation where to install the binary.
-INSTALL_BIN_DIR=${HOME}/bin
-
 .PHONY: prod devjs servedev serve clean_ui clean install watch
 
 prod: JSFLAGS = --mode=production
@@ -33,9 +29,6 @@ clean_ui:
 
 clean: clean_ui
 	rm -rf ./node_modules ./pkged.go ./marque
-
-install: prod
-	install ./marque ${INSTALL_BIN_DIR}/marque
 
 watch:
 	rm -f ./pkged.go
