@@ -1,0 +1,16 @@
+[Unit]
+Description=Marque Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/user/bin/marque serve
+WorkingDirectory=/home/user
+User=user
+Group=user
+StandardOutput=syslog
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
