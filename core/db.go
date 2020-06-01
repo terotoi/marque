@@ -1,7 +1,7 @@
 package core
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/jmoiron/sqlx"
 
@@ -13,7 +13,7 @@ import (
 func SetupDB(cfg *Config) (*sqlx.DB, error) {
 	var db *sqlx.DB
 
-	fmt.Printf("Connecting to %s %s\n", cfg.DatabaseType, cfg.DatabaseString)
+	log.Printf("Connecting to %s %s\n", cfg.DatabaseType, cfg.DatabaseString)
 
 	db, err := sqlx.Connect(cfg.DatabaseType, cfg.DatabaseString)
 	if err != nil {

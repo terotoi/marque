@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/terotoi/marque/utils"
 )
@@ -20,35 +21,33 @@ type Config struct {
 	JWTSecret      string `json:"jwt_secret"`
 }
 
-func setDefaults(cfg *Config) {
+func setDefaults(cfg *Config, cfgDir string) {
+	fmt.Printf("setDefaults\n")
 	cfg.ListenAddress = "127.0.0.1:9999"
 	cfg.DatabaseType = "sqlite3"
 
-	homeDir := os.Getenv("HOME")
-	dbLoc := fmt.Sprintf("%s/.config/marque/marque.db", homeDir)
+	dbLoc := fmt.Sprintf("%s/marque.db", cfgDir)
 	cfg.DatabaseString = fmt.Sprintf("file:%s?cache=shared&mode=rwc", dbLoc)
 }
 
 // LoadConfig loads the configuration file.
-func LoadConfig() (*Config, error) {
-	homeDir := os.Getenv("HOME")
-
-	cfgDir := fmt.Sprintf("%s/.config/marque", homeDir)
-
+func LoadConfig(cfgFile string) (*Config, error) {
 	var cfg Config
 
-	if _, err := os.Stat(cfgDir); os.IsNotExist(err) {
-		if err = os.Mkdir(cfgDir, 0700); err != nil {
-			log.Printf("Failed to create directory %s", cfgDir)
+	if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
+		cfgDir := filepath.Dir(cfgFile)
+
+		if _, err := os.Stat(cfgDir); os.IsNotExist(err) {
+			if err = os.Mkdir(cfgDir, 0700); err != nil {
+				log.Printf("Failed to create directory %s", cfgDir)
+				return nil, err
+			}
+		} else if err != nil {
 			return nil, err
 		}
-	} else if err != nil {
-		return nil, err
-	}
 
-	cfgFile := fmt.Sprintf("%s/.config/marque/config.json", homeDir)
-	if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
-		setDefaults(&cfg)
+		log.Printf("No config file found, saving defaults to %s.", cfgFile)
+		setDefaults(&cfg, cfgDir)
 	} else if err != nil {
 		return nil, err
 	} else {

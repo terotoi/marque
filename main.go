@@ -7,10 +7,11 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/terotoi/marque/core"
 	"github.com/jmoiron/sqlx"
+	"github.com/terotoi/marque/core"
 )
 
 const version = "0.4"
@@ -33,7 +34,7 @@ func setup(cfg *core.Config) (*core.Site, *sqlx.DB) {
 	return &site, db
 }
 
-func usage(cfg *core.Config) {
+func usage() {
 	fh := flag.CommandLine.Output()
 	fmt.Fprintf(fh, "Usage of %s:\n", os.Args[0])
 	fmt.Fprintf(fh, "  %s [options...] <command>\n", os.Args[0])
@@ -43,7 +44,7 @@ func usage(cfg *core.Config) {
 	fmt.Fprintln(fh)
 	fmt.Fprintf(fh, "   commands: serve, import, export\n")
 	fmt.Fprintln(fh)
-	fmt.Fprintf(fh, "   serve  - Serve bookmarks on http://%s.\n", cfg.ListenAddress)
+	fmt.Fprintf(fh, "   serve  - Serve bookmarks.\n")
 	fmt.Fprintf(fh, "   import - Import bookmarks from a custom JSON file.\n")
 	fmt.Fprintf(fh, "            example: %s -file filename.json import\n", os.Args[0])
 	fmt.Fprintf(fh, "   export - Export bookmarks to a custom JSON file.\n")
@@ -51,14 +52,20 @@ func usage(cfg *core.Config) {
 }
 
 func main() {
-	cfg, err := core.LoadConfig()
+	filename := flag.String("file", "", "file to to use [import]")
+	cfgFile := flag.String("c", "$HOME/.config/marque/config.json", "configuration file to use")
+	flag.Usage = usage
+	flag.Parse()
+
+	homeDir := os.Getenv("HOME")
+	*cfgFile = strings.Replace(*cfgFile, "$HOME", homeDir, 1)
+	*cfgFile = strings.Replace(*cfgFile, "~/", homeDir+"/", 1)
+	log.Printf("Loading configuration from %s\n", *cfgFile)
+
+	cfg, err := core.LoadConfig(*cfgFile)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	filename := flag.String("file", "", "file to to use [import]")
-	flag.Usage = func() { usage(cfg) }
-	flag.Parse()
 
 	args := flag.Args()
 	if len(args) == 0 {

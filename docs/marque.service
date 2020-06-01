@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/home/user/bin/marque serve
+ExecStart=/home/user/bin/marque -c /home/user/.config/marque/config.json serve
 WorkingDirectory=/home/user
 User=user
 Group=user

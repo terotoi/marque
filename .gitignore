@@ -1,6 +1,7 @@
 node_modules
 notes
 public/dist
+public/fonts
 .vscode
 .eslintrc
 marque

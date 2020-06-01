@@ -25,10 +25,10 @@ node_modules:
 	yarn install
 
 clean_ui:
-	rm -f ./public/dist/*.js
+	rm -f ./public/dist/*.js ./public/fonts/*
 
-clean: clean_ui
-	rm -rf ./node_modules ./pkged.go ./marque
+clean: clean_ui 
+	rm -rf ./node_modules ./marque
 
 watch:
 	rm -f ./pkged.go
