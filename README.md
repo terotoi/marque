@@ -3,9 +3,15 @@
 
 Marque is a bookmark manager which can be used through a web browser.
 
-Requirements: go 1.14, node.js 1.10+, yarn or npm, optionally make.
+Requirements: go 1.14, node.js 1.10+, pkger, yarn or npm, optionally make.
 
 ## Installation ##
+
+Install pkger first:
+
+`go get github.com/markbates/pkger/cmd/pkger`
+
+Then marque:
 
 `go get github.com/terotoi/marque`
 
@@ -18,6 +24,8 @@ or:
 `yarn install`    (or `npm install`)
 
 `npx webpack --mode=production`
+
+`pkger`
 
 `go build`
 
@@ -49,8 +57,6 @@ Marque uses pkger to bundle static files inside the binary. If you make
 modifications to any files in public/ you have to rebuild the pkged.go using pkger
 before building the production executable.
 
-`go get github.com/markbates/pkger/cmd/pkger`
-
 `pkger`
 
 ## TODO ##
@@ -60,4 +66,3 @@ before building the production executable.
 - Authentication and support for multiple user accounts (partially done)
 - Prepared statements
 - Better parsing of page titles
-
