@@ -1,5 +1,5 @@
 "use strict"
-import { makeStyles, Button } from '@material-ui/core'
+import { makeStyles, Box, Button } from '@material-ui/core'
 import React, { useState } from 'react'
 
 const styles = (theme) => {
@@ -9,7 +9,13 @@ const styles = (theme) => {
 		},
 		tag: {
 			marginRight: theme.spacing(2),
-			marginBottom: theme.spacing(1)
+			marginBottom: theme.spacing(1),
+			flexGrow: 1,
+			flexShrink: 1,
+			flexBasis: '10em',
+			width: 0,
+			textAlign: 'center',
+			border: '1px solid #777'
 		}
 	}
 	return styles
@@ -23,6 +29,8 @@ const useStyles = makeStyles(styles)
 //    onChange(selected: []string) Called when list of selected tags changes.
 const TagList = function (props) {
 	const classes = useStyles()
+
+	console.log("TagList__")
 
 	const onTagClicked = function (tag) {
 		const i = props.selected.indexOf(tag)
@@ -47,9 +55,9 @@ const TagList = function (props) {
 	})
 
 	return (
-		<div className={classes.taglist}>
+		<Box className={classes.taglist} display="flex" flexDirection="row" flexWrap="wrap">
 			{t_html}
-		</div>)
+		</Box>)
 }
 
 export default TagList

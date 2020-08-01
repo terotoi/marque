@@ -1,6 +1,7 @@
 .PHONY: prod devjs servedev serve clean_ui clean install watch
 
 prod: JSFLAGS = --mode=production
+prod: PKG = pkger
 prod: node_modules public/dist/ui.js marque
 
 devjs: JSFLAGS = --mode=development -w
@@ -28,7 +29,7 @@ clean_ui:
 	rm -f ./public/dist/*.js ./public/fonts/*
 
 clean: clean_ui 
-	rm -rf ./node_modules ./marque
+	rm -rf ./node_modules pkged.go ./marque 
 
 watch:
 	rm -f ./pkged.go
