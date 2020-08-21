@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/terotoi/marque/models"
 	"github.com/jmoiron/sqlx"
+	"github.com/terotoi/marque/models"
 )
 
 // ImportJSON imports bookmarks from JSON file with a custom format.

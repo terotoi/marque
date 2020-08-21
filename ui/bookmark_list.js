@@ -32,7 +32,7 @@ export default withStyles(styles)(class BookmarkList extends React.Component {
 
 	filterBookmarks(bms, text, tags) {
 		text = text.trim()
-		if(!text && tags.length == 0) {
+		if (!text && tags.length == 0) {
 			return this.newestBookmarks(bms, 10)
 		}
 
@@ -103,15 +103,14 @@ export default withStyles(styles)(class BookmarkList extends React.Component {
 
 		return (
 			<React.Fragment key={i}>
-				<ListItem alignItems="flex-start">
+				<ListItem alignItems="flex-start" button component="a" href={item.URL}>
 					<ListItemText
-						onClick={() => this.onBookmarkClicked(item)}
 						primary={item.Title}
 						secondary={
 							<React.Fragment>
-								{h_tags}<br/>
+								{h_tags}<br />
 								{item.Notes ?
-									<span onClick={(ev) => this.onDescClicked(ev, item)}>{item.Notes}<br/></span>
+									<span onClick={(ev) => this.onDescClicked(ev, item)}>{item.Notes}<br /></span>
 									: null}
 								{item.Updated ? item.Updated.toLocaleDateString() + ' ' + item.Updated.toLocaleTimeString() : null}
 							</React.Fragment>

@@ -30,8 +30,6 @@ const useStyles = makeStyles(styles)
 const TagList = function (props) {
 	const classes = useStyles()
 
-	console.log("TagList__")
-
 	const onTagClicked = function (tag) {
 		const i = props.selected.indexOf(tag)
 		let s

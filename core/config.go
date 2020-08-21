@@ -22,7 +22,7 @@ type Config struct {
 }
 
 func setDefaults(cfg *Config, cfgDir string) {
-	fmt.Printf("setDefaults\n")
+	log.Printf("Initializing configuration to defaults")
 	cfg.ListenAddress = "127.0.0.1:9999"
 	cfg.DatabaseType = "sqlite3"
 

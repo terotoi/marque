@@ -7,10 +7,8 @@ prod: node_modules public/dist/ui.js marque
 devjs: JSFLAGS = --mode=development -w
 devjs: node_modules clean_ui public/dist/ui.js
 
-servedev: PKG = rm -f ./pkged.go
-servedev: serve
-
-serve: marque
+servedev_: PKG = rm -f ./pkged.go
+servedev_: marque
 	./marque serve
 
 marque: *.go */*.go
@@ -33,4 +31,7 @@ clean: clean_ui
 
 watch:
 	rm -f ./pkged.go
-	find . -iname '*.go' | entr -r make servedev
+	find . -iname '*.go' | entr -r make servedev_
+
+docker: marque
+	docker build -t marque .
