@@ -1,6 +1,5 @@
 FROM debian:stable
 
-ENV TZ=Europe/Helsinki
 ENV cfg="./marque.json"
 RUN echo cfg is ${cfg}
 
