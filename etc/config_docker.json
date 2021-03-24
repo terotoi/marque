@@ -1,0 +1,8 @@
+{
+  "listen_address": ":9999",
+  "db_type": "sqlite3",
+  "db_string": "file:/data/marque.db?cache=shared\u0026mode=rwc",
+  "password_secret": "",
+  "jwt_secret": "",
+  "data_dir": "/data"
+}

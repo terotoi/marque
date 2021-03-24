@@ -1,13 +1,11 @@
 package core
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/terotoi/marque/utils"
 )
@@ -19,75 +17,87 @@ type Config struct {
 	DatabaseString string `json:"db_string"`
 	PasswordSecret string `json:"password_secret"`
 	JWTSecret      string `json:"jwt_secret"`
+	DataDir        string `json:"data_dir"`
 }
 
-func setDefaults(cfg *Config, cfgDir string) {
-	log.Printf("Initializing configuration to defaults")
-	cfg.ListenAddress = "127.0.0.1:9999"
-	cfg.DatabaseType = "sqlite3"
-
-	dbLoc := fmt.Sprintf("%s/marque.db", cfgDir)
-	cfg.DatabaseString = fmt.Sprintf("file:%s?cache=shared&mode=rwc", dbLoc)
+// SecretsConfig is an optional configuration for the secrets.
+// It is automatically generated if any of the secrets is not
+// given in the main config.
+type SecretsConfig struct {
+	PasswordSecret string `json:"password_secret"`
+	JWTSecret      string `json:"jwt_secret"`
 }
 
 // LoadConfig loads the configuration file.
 func LoadConfig(cfgFile string) (*Config, error) {
 	var cfg Config
 
-	if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
-		cfgDir := filepath.Dir(cfgFile)
+	d, err := ioutil.ReadFile(cfgFile)
+	if err != nil {
+		return nil, err
+	}
 
-		if _, err := os.Stat(cfgDir); os.IsNotExist(err) {
-			if err = os.Mkdir(cfgDir, 0700); err != nil {
-				log.Printf("Failed to create directory %s", cfgDir)
+	if err = json.Unmarshal(d, &cfg); err != nil {
+		return nil, err
+	}
+
+	secretsFile := fmt.Sprintf("%s/secrets.json", cfg.DataDir)
+
+	var secrets SecretsConfig
+	if cfg.DataDir != "" {
+		d, err := ioutil.ReadFile(secretsFile)
+
+		if err != nil && !os.IsNotExist(err) {
+			return nil, err
+		}
+
+		if err == nil {
+			if err = json.Unmarshal(d, &secrets); err != nil {
 				return nil, err
 			}
-		} else if err != nil {
-			return nil, err
-		}
-
-		log.Printf("No config file found, saving defaults to %s.", cfgFile)
-		setDefaults(&cfg, cfgDir)
-	} else if err != nil {
-		return nil, err
-	} else {
-		contents, err := ioutil.ReadFile(cfgFile)
-		if err != nil {
-			return nil, err
-		}
-
-		if err = json.Unmarshal(contents, &cfg); err != nil {
-			return nil, err
 		}
 	}
 
-	var rewrite bool
+	var writeSecrets bool
 	if cfg.PasswordSecret == "" {
-		secret, err := utils.GenerateSecret(512)
-		if err != nil {
-			return nil, err
+		if secrets.PasswordSecret != "" {
+			cfg.PasswordSecret = secrets.PasswordSecret
+		} else {
+			log.Println("Generating new password secret.")
+			cfg.PasswordSecret, err = utils.GenerateSecret(32)
+			if err != nil {
+				return nil, err
+			}
+			secrets.PasswordSecret = cfg.PasswordSecret
+			writeSecrets = true
 		}
-
-		cfg.PasswordSecret = base64.RawStdEncoding.EncodeToString(secret)
-		rewrite = true
 	}
 
 	if cfg.JWTSecret == "" {
-		secret, err := utils.GenerateSecret(512)
-		if err != nil {
-			return nil, err
+		if secrets.JWTSecret != "" {
+			cfg.JWTSecret = secrets.JWTSecret
+		} else {
+			log.Println("Generating new JWT secret.")
+			cfg.JWTSecret, err = utils.GenerateSecret(32)
+			if err != nil {
+				return nil, err
+			}
+			secrets.JWTSecret = cfg.JWTSecret
+			writeSecrets = true
 		}
-		cfg.JWTSecret = base64.RawStdEncoding.EncodeToString(secret)
-		rewrite = true
 	}
 
-	if rewrite {
-		data, err := json.MarshalIndent(cfg, "", "  ")
+	if writeSecrets {
+		if cfg.DataDir == "" {
+			return nil, fmt.Errorf("secrets not given and data_dir is empty")
+		}
+
+		md, err := json.Marshal(secrets)
 		if err != nil {
 			return nil, err
 		}
 
-		if err := ioutil.WriteFile(cfgFile, data, 0640); err != nil {
+		if err := ioutil.WriteFile(secretsFile, md, 0600); err != nil {
 			return nil, err
 		}
 	}

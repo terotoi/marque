@@ -1,20 +1,15 @@
 FROM debian:stable
 
-ENV cfg="./marque.json"
-RUN echo cfg is ${cfg}
-
 # Needed for downloading titles.
-RUN mkdir -p "/etc/ssl/certs"
-COPY "/etc/ca-certificates.crt" "/etc/ssl/certs"
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
+	apt-get -y install ca-certificates
 
 WORKDIR "/dist"
-RUN mkdir "/log"
-
 COPY "marque" "."
-COPY "public" "."
-COPY "etc/cfg_docker.json" "${cfg}"
+COPY "public" "./public"
+COPY "etc/config_docker.json" "./config.json"
 
 EXPOSE 9999
 
-CMD ["sh", "-c", "/dist/marque -c ${cfg} serve"]
+CMD ["sh", "-c", "/dist/marque -c ./config.json serve"]
 

@@ -10,12 +10,12 @@ const styles = (theme) => {
 		tag: {
 			marginRight: theme.spacing(2),
 			marginBottom: theme.spacing(1),
-			flexGrow: 1,
-			flexShrink: 1,
-			flexBasis: '10em',
-			width: 0,
-			textAlign: 'center',
-			border: '1px solid #777'
+			flexGrow: 0,
+			flexShrink: 0,
+			width: '8%',
+			minWidth: '8em',
+			border: '1px solid #777',
+			overflow: 'hidden'
 		}
 	}
 	return styles
@@ -42,14 +42,15 @@ const TagList = function (props) {
 	}
 
 	const t_html = props.all.map((tag) => {
-		return (<Button
-			className={classes.tag}
-			variant="outlined"
-			size="small"
-			color={props.selected.indexOf(tag) != -1 ? "primary" : "default"}
-			key={tag}
-			onClick={(ev) => onTagClicked(tag)}>
-			{tag}</Button>)
+		return (
+			<Button
+				className={classes.tag}
+				variant="outlined"
+				size="small"
+				color={props.selected.indexOf(tag) != -1 ? "primary" : "default"}
+				key={tag}
+				onClick={(ev) => onTagClicked(tag)}>
+				{tag}</Button>)
 	})
 
 	return (

@@ -1,18 +1,12 @@
-.PHONY: prod devjs servedev serve clean_ui clean install watch
 
-prod: JSFLAGS = --mode=production
-prod: PKG = pkger
-prod: node_modules public/dist/ui.js marque
+.PHONY: all prod devjs servedev serve clean_ui clean install watch
 
-devjs: JSFLAGS = --mode=development -w
-devjs: node_modules clean_ui public/dist/ui.js
+all: prod
 
-servedev_: PKG = rm -f ./pkged.go
-servedev_: marque
+servedev: marque
 	./marque serve
 
 marque: *.go */*.go
-	${PKG}
 	go build
 
 marque_prod: *.go
@@ -23,15 +17,38 @@ public/dist/ui.js: ui/*.js
 node_modules:
 	yarn install
 
+prod: JSFLAGS = --mode=production
+prod: node_modules public/dist/ui.js marque
+
+devjs: JSFLAGS = --mode=development -w
+devjs: node_modules clean_ui public/dist/ui.js
+
 clean_ui:
 	rm -f ./public/dist/*.js ./public/fonts/*
 
 clean: clean_ui 
-	rm -rf ./node_modules pkged.go ./marque 
+	rm -rf ./node_modules ./marque 
 
 watch:
-	rm -f ./pkged.go
-	find . -iname '*.go' | entr -r make servedev_
+	find . -iname '*.go' | entr -r make servedev
 
-docker: marque
+docker: prod
 	docker build -t marque .
+
+docker_run: docker
+	docker stop marque || true
+	docker rm marque || true
+	docker run \
+		-it \
+	  --mount source=marque,target=/data \
+		-p 127.0.0.1:9000:9999 \
+		--name marque marque:latest
+
+docker_launch: docker
+	docker stop marque || true
+	docker rm marque || true
+	docker run -d --restart=always \
+	  --mount source=marque,target=/data \
+		-p 127.0.0.1:9000:9999 \
+		--name marque marque:latest
+

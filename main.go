@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"flag"
 	"fmt"
 	"log"
@@ -26,7 +25,7 @@ func setup(cfg *core.Config) (*core.Site, *sqlx.DB) {
 
 	var site core.Site
 	site.Config = cfg
-	site.JWTSecret, err = base64.RawStdEncoding.DecodeString(cfg.JWTSecret)
+	site.JWTSecret = []byte(cfg.JWTSecret)
 	if err != nil {
 		log.Fatal(err)
 	}

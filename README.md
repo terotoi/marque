@@ -3,7 +3,7 @@
 
 Marque is a bookmark manager which can be used through a web browser.
 
-Requirements: go 1.14, node.js 1.10+, yarn or npm, optionally make.
+Requirements: go 1.5, node.js 1.10+, yarn or npm and optionally make.
 
 ## Installation ##
 
@@ -21,55 +21,34 @@ or:
 
 `go build`
 
-The resulting binary is **marque** at it is a standalone executable.
-All data files are embedded in the binary.
+The resulting binary is **marque**.
 
-The binary can be copied to somewhere in your path.
+## Running marque inside a docker image ##
 
-## Running ##
+To build the image, type:
 
-`marque serve`
+`docker build -t marque .` or `make docker`
 
-This starts the server, listening on 127.0.0.1 port 9999 by default.
-The server can be accessed by a browser, for example:
+You can run the image with, for example:
 
-`firefox http://localhost:9999/`
+`docker run --mount source=marque,target=/data -p 127.0.0.1:9000:9999 --name marque marque:latest`
 
-An example service script for systemd can be found in **docs/marque.service**
+This will start the container and redirect the port 9000 on localhost to marque running inside the container.
 
-## Configuration ##
+To launch the image in the background and have it restart automatically, type:
 
-The configuration file is in **$HOME/.config/marque/config.json**
+`docker run -d --restart=always --mount source=marque,target=/data -p 127.0.0.1:9000:9999 --name marque marque:latest`
 
-Sqlite3 database file for the server is **$HOME/.config/marque/marque.db**
+Or just:
 
-## Development ##
+`make docker_launch`
 
-Marque uses pkger to bundle static files inside the binary. If you make
-modifications to any files in public/ you have to rebuild the pkged.go using pkger
-before building the production executable.
+## Using marque ##
 
-`go get github.com/markbates/pkger/cmd/pkger`
-
-`pkger`
-
-## Docker ##
-
-You can build a docker image by typing:
-
-`make docker`
-
-To run this image, type:
-
-`docker run -p 9999:9999 --name marque -d marque`
-
-Add `--restart unless-stopped` if you want to keep the marque running after restart.
+Use your favorite browser to navigate to http://localhost:9000/
 
 ## TODO ##
 
-- Importing and exporting of firefox/chrome bookmarks
-- Some layout fixes for mobile
-- Authentication and support for multiple user accounts (partially done)
+- Authentication and support for multiple user accounts
 - Prepared statements
-- Better parsing of page titles
-
+- Better parsing of some page titles
