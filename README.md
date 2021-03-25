@@ -7,7 +7,7 @@ Requirements: go 1.5, node.js 1.10+, yarn or npm and optionally make.
 
 ## Installation ##
 
-`go get github.com/terotoi/marque`
+`git clone https://github.com/terotoi/marque.git`
 
 Change to the marque directory and type:
 
