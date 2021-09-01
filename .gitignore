@@ -6,3 +6,4 @@ public/fonts
 .eslintrc
 marque
 pkged.go
+etc/config_docker.json

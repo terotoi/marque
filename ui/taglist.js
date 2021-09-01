@@ -23,23 +23,15 @@ const styles = (theme) => {
 
 const useStyles = makeStyles(styles)
 
-// props:
-// 		all: []string       All tags
-//    selected: []string  Selected tags
-//    onChange(selected: []string) Called when list of selected tags changes.
+/**
+ * TagList
+ * 
+ * @param {[]string} all - all tags
+ * @param {[]string} selected - currently selected tags
+ * @param {function} onTagClicked -
+ */
 const TagList = function (props) {
 	const classes = useStyles()
-
-	const onTagClicked = function (tag) {
-		const i = props.selected.indexOf(tag)
-		let s
-		if (i == -1) {
-			s = [...props.selected, tag]
-		} else {
-			s = props.selected.filter((t) => t !== tag)
-		}
-		props.onChange(s)
-	}
 
 	const t_html = props.all.map((tag) => {
 		return (
@@ -47,9 +39,9 @@ const TagList = function (props) {
 				className={classes.tag}
 				variant="outlined"
 				size="small"
-				color={props.selected.indexOf(tag) != -1 ? "primary" : "default"}
+				color={props.selected.indexOf(tag) != -1 ? "secondary" : "inherit"}
 				key={tag}
-				onClick={(ev) => onTagClicked(tag)}>
+				onClick={(ev) => props.onTagClicked(tag)}>
 				{tag}</Button>)
 	})
 

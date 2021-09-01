@@ -5,7 +5,7 @@ import {
 } from '@material-ui/core'
 
 // props:
-//    title: string   // Alert title text
+//    title: string  // Alert title text
 //    text: string   // Alert text
 //    onClose: function()
 export default function AlertDialog(props) {
@@ -33,3 +33,23 @@ export default function AlertDialog(props) {
 		</Dialog>
 	)
 }
+
+
+/**
+ * Creates an AlertDialog and adds it to the context using ctx.addDialog(dialog)
+ * On close, ctx.removeDialog(dialog) will be called.
+ * 
+ * @param {string} props.title - title of the dialog (optional)
+ * @param {string} props.text - main text of the dialog
+ * @param {state} ctx - application context
+ */
+export function openAlertDialog(ctx, props) {
+	const dialog =
+		<AlertDialog
+		  title={props.title || props.text}
+			text={props.text}
+			onConfirm={props.onConfirm}
+			onClose={() => { ctx.removeDialog(dialog) }} />
+	ctx.addDialog(dialog)
+}
+

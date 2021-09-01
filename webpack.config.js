@@ -1,9 +1,9 @@
 module.exports = {
+	entry: './ui/init',
 	output: {
 		path: __dirname + '/public/dist',
 		filename: 'ui.js'
 	},
-	entry: './ui/main',
 	performance: {
 		hints: false
 	},
@@ -21,17 +21,12 @@ module.exports = {
 				use: ['style-loader', 'css-loader'],
 			},
 			{
-        test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              name: '[name].[ext]',
-              outputPath: '../fonts/'
-            }
-          }
-        ]
-      }
+				test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
+				type: 'asset/resource',
+				generator: {
+					filename: 'fonts/[hash][ext][query]'
+				}
+			}
 		]
 	}
 }

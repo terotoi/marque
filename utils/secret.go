@@ -1,10 +1,10 @@
 package utils
 
 import (
-	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha256"
 	"fmt"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // GenerateSecret generates a secret for HMAC hashing.
@@ -19,9 +19,22 @@ func GenerateSecret(len int) (string, error) {
 	return fmt.Sprintf("%x", secret), nil
 }
 
-// MakeHash creates a hash of secret, username and password.
-func MakeHash(secret, extra string) string {
-	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write([]byte(secret + ":" + extra))
-	return fmt.Sprintf("%x", mac.Sum(nil))
+// HashPassword creates a hash of secret and password.
+func HashPassword(secret, pw string) (string, error) {
+	newHash, err := bcrypt.GenerateFromPassword([]byte(secret+":"+pw), bcrypt.MinCost)
+	if err != nil {
+		return "", err
+	}
+	return string(newHash), nil
+
+	/*
+		mac := hmac.New(sha256.New, []byte(pw))
+		mac.Write([]byte(secret + ":" + pw))
+		return fmt.Sprintf("%x", mac.Sum(nil))
+	*/
+}
+
+// CompareHash hashes a password and compares it to previously hashed password.
+func ComparePassword(secret, pw, oldPw string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(oldPw), []byte(secret+":"+pw)) == nil
 }

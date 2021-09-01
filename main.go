@@ -6,11 +6,11 @@ import (
 	"log"
 	"math/rand"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/terotoi/marque/core"
+	"github.com/terotoi/marque/utils"
 )
 
 const version = "0.4"
@@ -50,21 +50,31 @@ func usage() {
 	fmt.Fprintf(fh, "            example: %s -file filename.json export\n", os.Args[0])
 }
 
+func startServe(cfgFile string) error {
+	log.Printf("Loading configuration from %s", cfgFile)
+
+	cfg, err := core.LoadConfig(cfgFile)
+	if err != nil {
+		return err
+	}
+
+	site, db := setup(cfg)
+	defer db.Close()
+
+	return serve(site, db)
+}
+
 func main() {
-	filename := flag.String("file", "", "file to to use [import]")
 	cfgFile := flag.String("c", "$HOME/.config/marque/config.json", "configuration file to use")
+	dataDir := flag.String("d", "$HOME/.config/marque", "data directory")
+	listenAddress := flag.String("l", ":9999", "listen to this address")
+	createInitialUser := flag.Bool("i", false, "create an initial admin user")
+
 	flag.Usage = usage
 	flag.Parse()
 
-	homeDir := os.Getenv("HOME")
-	*cfgFile = strings.Replace(*cfgFile, "$HOME", homeDir, 1)
-	*cfgFile = strings.Replace(*cfgFile, "~/", homeDir+"/", 1)
-	log.Printf("Loading configuration from %s\n", *cfgFile)
-
-	cfg, err := core.LoadConfig(*cfgFile)
-	if err != nil {
-		log.Fatal(err)
-	}
+	*cfgFile = utils.ReplaceEnvs(*cfgFile)
+	*dataDir = utils.ReplaceEnvs(*dataDir)
 
 	args := flag.Args()
 	if len(args) == 0 {
@@ -73,26 +83,13 @@ func main() {
 	}
 	command := args[0]
 
-	site, db := setup(cfg)
-	defer db.Close()
-
+	var err error
 	switch command {
+	case "createconfig":
+		_, err = core.GenerateConfig(*cfgFile, *dataDir, *listenAddress, *createInitialUser)
+
 	case "serve":
-		err = serve(site, db)
-
-	case "import":
-		if *filename == "" {
-			flag.Usage()
-		} else {
-			err = ImportJSON(*filename, db)
-		}
-
-	case "export":
-		if *filename == "" {
-			flag.Usage()
-		} else {
-			err = ExportJSON(*filename, db)
-		}
+		err = startServe(*cfgFile)
 
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)

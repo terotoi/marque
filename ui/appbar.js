@@ -1,14 +1,17 @@
-"use strict"
+import React, { useState } from 'react'
 import {
 	AppBar, IconButton, InputAdornment, Menu, MenuItem, TextField, Toolbar, Typography,
 	Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
 	makeStyles
 } from '@material-ui/core'
 import { Add, Search } from '@material-ui/icons'
+import AccountCircle from '@material-ui/icons/AccountCircle'
 import MenuIcon from '@material-ui/icons/Menu'
-import React, { useState } from 'react'
+import { openAlertDialog } from './dialogs/alert'
+import { openPasswordDialog } from './dialogs/password'
+import { fetchJSON } from './api'
 
-const VERSION = '0.4'
+const VERSION = '0.4.1'
 
 const styles = (theme) => {
 	const styles = {
@@ -30,15 +33,40 @@ const styles = (theme) => {
 
 const useStyles = makeStyles(styles)
 
-// props:
-//   onAddClicked: function()
-//   onSearchTextChanged: function(text)
+/**
+ * AppBar
+ *
+ * @param {function} props.onAddClicked - called when add bookmark is clicked
+ * @param {function} props.onSearchTextChanged - called when user changed the search text
+ * @param {state} ctx - context for the application
+ */
 const MyAppBar = function (props) {
 	const classes = useStyles()
-
-	const [menuOpen, setMenuOpen] = useState(false)
-	const [menuAnchor, setMenuAnchor] = useState(null)
+	const [mainMenuAnchor, setMainMenuAnchor] = useState(null)
+	const [accountMenuAnchor, setAccountMenuAnchor] = useState(null)
 	const [aboutOpen, setAboutOpen] = useState(false)
+
+	function onChangePassword() {
+		function onPasswordConfirm(oldPasswd, newPasswd) {
+			fetchJSON('/api/user/set_password', 'post', 'json', {
+				Username: props.ctx.username,
+				OldPassword: oldPasswd,
+				NewPassword: newPasswd
+			},
+				props.ctx.authToken,
+				() => {
+					openAlertDialog(props.ctx, {
+						text: "Password changed."
+					})
+				},
+				(error) => { openAlertDialog(props.ctx, { title: "Error", text: error || "Server error" }) })
+		}
+
+		openPasswordDialog(props.ctx, {
+			text: 'Change your password.',
+			onConfirm: onPasswordConfirm
+		})
+	}
 
 	return (
 		<div>
@@ -46,13 +74,17 @@ const MyAppBar = function (props) {
 				<Toolbar>
 					<IconButton edge="start" className={classes.menuButton} color="inherit"
 						aria-label="menu"
-						ref={(r) => setMenuAnchor(r)}
-						onClick={() => setMenuOpen(true)}>
+						onClick={(ev) => { setMainMenuAnchor(ev.currentTarget) }}>
 						<MenuIcon />
 					</IconButton>
 					<Typography variant="h4" className={classes.title}>Marque</Typography>
-					
-					<TextField id="standard-basic" label="Search" className={classes.search}
+
+					<TextField
+						id="search_field"
+						label="Search"
+						autoComplete="off"
+						name="search"
+						className={classes.search}
 						onChange={(ev) => props.onSearchTextChanged(ev.target.value)}
 						InputProps={{
 							startAdornment: (
@@ -65,13 +97,38 @@ const MyAppBar = function (props) {
 					<IconButton color="inherit" aria-label="add a bookmark" onClick={props.onAddClicked}>
 						<Add />
 					</IconButton>
-					<Menu
-						anchorEl={menuAnchor}
-						open={menuOpen}
-						onClose={() => setMenuOpen(false)}>
-						<MenuItem onClick={() => { setAboutOpen(true); setMenuOpen(false) }}>
-							About</MenuItem>
-					</Menu>
+
+					<IconButton
+						onClick={(ev) => setAccountMenuAnchor(ev.currentTarget)}>
+						<AccountCircle />
+					</IconButton>
+
+					{/** Main menu **/}
+					{mainMenuAnchor === null ? null :
+						<Menu
+							anchorEl={mainMenuAnchor}
+							open={true}
+							onClose={() => setMainMenuAnchor(null)}>
+							<MenuItem onClick={() => { setAboutOpen(true); setMainMenuAnchor(null) }}>
+								About</MenuItem>
+						</Menu>}
+
+					{/** Account menu **/}
+					{accountMenuAnchor === null ? null :
+						<Menu
+							anchorEl={accountMenuAnchor}
+							open={true}
+							onClose={() => setAccountMenuAnchor(null)}>
+
+							<MenuItem>{props.ctx.username ? "Username: " + props.ctx.username : "Not logged in"}</MenuItem>
+							<MenuItem onClick={onChangePassword}>Change password</MenuItem>
+							{props.ctx.isAdmin ?
+								<MenuItem disabled>Manage users</MenuItem> : null}
+							<MenuItem onClick={() => {
+								setAccountMenuAnchor(null)
+								props.ctx.logout()
+							}}>Logout</MenuItem>
+						</Menu>}
 				</Toolbar>
 			</AppBar>
 
@@ -96,14 +153,14 @@ function AboutDialog(props) {
 			<DialogTitle id="about-dialog-title">Marque</DialogTitle>
 			<DialogContent>
 				<DialogContentText id="about-dialog-description">
-					Marque {VERSION} Copyright © 2020 Tero Oinas.<br/>
+					Marque {VERSION} Copyright © 2020 Tero Oinas.<br />
 					This program is published under the Generic Public License v2.0.
 				</DialogContentText>
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={onClose} color="primary" autoFocus>
 					OK
-        </Button>
+				</Button>
 			</DialogActions>
 		</Dialog>
 	)

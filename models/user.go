@@ -4,50 +4,52 @@ import (
 	"log"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/terotoi/marque/utils"
 )
 
 // User account
 type User struct {
 	ID       int64
 	Name     string
-	Password *string
+	Password string
+	Admin    bool
 }
 
 // NewUser creates a new user object.
-func NewUser(name string) *User {
-	u := User{
-		Name: name,
+func NewUser(name, password string, admin bool, pwSecret string) (*User, error) {
+	hashedPw, err := utils.HashPassword(pwSecret, password)
+	if err != nil {
+		return nil, err
 	}
-	return &u
+
+	u := User{
+		Name:     name,
+		Password: hashedPw,
+		Admin:    admin,
+	}
+	return &u, nil
 }
 
-const usersInsertNames = "(name, password)"
-const usersInsertParams = "($1, $2)"
-const usersUpdateParams = "name=$2, password=$3"
-const usersSelectFields = "users.id, users.name, users.password"
-
 // Insert a user into the database.
-func (u *User) Insert(db *sqlx.DB) (int64, error) {
-	query := "INSERT INTO users " + usersInsertNames + " VALUES " +
-		usersInsertParams +
-		" RETURNING id"
+func (u *User) Insert(tx *sqlx.Tx) error {
+	query := "INSERT INTO users (name, password, admin) VALUES (?, ?, ?)"
 
-	// sqlite3: datetime($5)
-
-	row := db.QueryRow(query, u.Name, u.Password)
-	var id int64
-	err := row.Scan(&id)
+	res, err := tx.Exec(query, u.Name, u.Password, u.Admin)
 	if err != nil {
-		log.Printf("User.Insert: %s", err.Error())
+		return err
 	}
-	u.ID = id
-	return id, err
+
+	u.ID, err = res.LastInsertId()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Update a user in the database.
-func (u *User) Update(db *sqlx.DB) error {
-	query := "UPDATE users SET " + usersUpdateParams + " WHERE id=$1"
-	_, err := db.Exec(query, u.ID, u.Name, u.Password)
+func (u *User) Update(tx *sqlx.Tx) error {
+	query := "UPDATE users SET name=?, password=?, admin=? WHERE id=?"
+	_, err := tx.Exec(query, u.Name, u.Password, u.Admin, u.ID)
 	if err != nil {
 		log.Printf("User.Update: %s", err.Error())
 	}
@@ -56,27 +58,36 @@ func (u *User) Update(db *sqlx.DB) error {
 
 // UserByID returns a user object by id.
 // Returns error if not found.
-func UserByID(id int64, db *sqlx.DB) (*User, error) {
+func UserByID(id int64, tx *sqlx.Tx) (*User, error) {
 	u := User{}
 
-	if err := db.Get(&u, "SELECT "+usersSelectFields+" FROM users "+
-		"WHERE users.id=$1", id); err != nil {
+	if err := tx.Get(&u, "SELECT * FROM users WHERE users.id=? LIMIT 1", id); err != nil {
 		return nil, err
 	}
 	return &u, nil
 }
 
 // UserByName returns a user object by username.
-func UserByName(name string, db *sqlx.DB) (*User, error) {
-	u := []*User{}
+func UserByName(name string, tx *sqlx.Tx) (*User, error) {
+	u := []User{}
 
-	if err := db.Select(&u, "SELECT "+usersSelectFields+" FROM users "+
-		"WHERE users.name=$1", name); err != nil {
+	if err := tx.Select(&u, "SELECT * FROM users WHERE users.name=? LIMIT 1", name); err != nil {
 		return nil, err
 	}
 
-	if len(u) > 0 {
-		return u[0], nil
+	if len(u) == 0 {
+		return nil, nil
+	} else {
+		return &u[0], nil
 	}
-	return nil, nil
+}
+
+// NumUsers returns the number of users in the users table.
+func NumUsers(tx *sqlx.Tx) (int, error) {
+	var count int
+	if err := tx.Get(&count, "SELECT COUNT(id) FROM users"); err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }

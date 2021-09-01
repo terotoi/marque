@@ -1,5 +1,5 @@
 
-.PHONY: all prod devjs servedev serve clean_ui clean install watch
+.PHONY: all prod jsdev servedev serve clean_ui clean install watch
 
 all: prod
 
@@ -20,20 +20,30 @@ node_modules:
 prod: JSFLAGS = --mode=production
 prod: node_modules public/dist/ui.js marque
 
-devjs: JSFLAGS = --mode=development -w
-devjs: node_modules clean_ui public/dist/ui.js
+jsdev: node_modules
+	rm -rf public/dist/*.js
+	npx webpack --mode=development -w
 
-clean_ui:
-	rm -f ./public/dist/*.js ./public/fonts/*
+jsprod: node_modules
+	rm -f public/dist/ui.js
+	npx webpack --mode=production
 
-clean: clean_ui 
-	rm -rf ./node_modules ./marque 
+clean:
+	rm -f ./public/dist/*.js ./public/fonts/* marque
 
-watch:
+distclean: clean
+	rm -rf ./node_modules 
+
+watchdev:
 	find . -iname '*.go' | entr -r make servedev
 
 docker: prod
+	etc/create_docker_config.sh
 	docker build -t marque .
+
+docker_azure: prod
+	etc/create_docker_config.sh
+	docker build --build-arg azure=true -t marque .
 
 docker_run: docker
 	docker stop marque || true
@@ -41,7 +51,7 @@ docker_run: docker
 	docker run \
 		-it \
 	  --mount source=marque,target=/data \
-		-p 127.0.0.1:9000:9999 \
+		-p 127.0.0.1:9998:9999 \
 		--name marque marque:latest
 
 docker_launch: docker
@@ -49,6 +59,6 @@ docker_launch: docker
 	docker rm marque || true
 	docker run -d --restart=always \
 	  --mount source=marque,target=/data \
-		-p 127.0.0.1:9000:9999 \
+		-p 127.0.0.1:9998:9999 \
 		--name marque marque:latest
 

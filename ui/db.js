@@ -1,9 +1,9 @@
 import React from 'react'
-import { fetchJSON } from './util'
-import BookmarkList from './bookmark_list'
+import BookmarkList from './bm_list'
 import EditBookmarkDialog from './edit'
 import TagList from './taglist'
-import AlertDialog from './alert'
+import AlertDialog from './dialogs/alert'
+import { fetchJSON } from './api'
 
 const FILTER_TEXT_DELAY = 500
 
@@ -15,11 +15,16 @@ function convertDate(str) {
   return null
 }
 
-// Database is an interface to the bookmark database on the server.
-// props:
+/**
+ *  Database is an interface to the bookmark database on the server.
+ * 
+ * @param {state} ctx - application context
+ */
 export default class DatabaseUI extends React.Component {
   constructor(props) {
     super(props)
+
+    this.ctx = props.ctx
 
     this.state = {
       bookmarks: [],
@@ -30,8 +35,10 @@ export default class DatabaseUI extends React.Component {
       alert: null
     }
 
-    fetchJSON('/api/get_bookmarks', (bms) => {
-      if(bms === null)
+    this.onTagClicked = this.onTagClicked.bind(this)
+
+    fetchJSON('/api/get_bookmarks', 'get', 'json', null, this.ctx.authToken, (bms) => {
+      if (bms === null)
         bms = []
       bms.forEach(bm => bm.Updated = convertDate(bm.Updated))
       this.setState({ bookmarks: bms, tags: this.collectTags(bms) })
@@ -42,8 +49,7 @@ export default class DatabaseUI extends React.Component {
           text: err.toString()
         }
       })
-    },
-      'get', null, null)
+    })
   }
 
   get bookmarks() {
@@ -105,7 +111,7 @@ export default class DatabaseUI extends React.Component {
   }
 
   createBookmark(bm) {
-    fetchJSON('/api/bookmark/create', (result) => {
+    fetchJSON('/api/bookmark/create', 'post', 'json', bm, this.ctx.authToken, (result) => {
       if (result === false)
         this.setState({ alert: { title: "Server error", text: "Failed to add a bookmark." } })
       else if (result === true)
@@ -122,11 +128,11 @@ export default class DatabaseUI extends React.Component {
           text: err.toString()
         }
       })
-    }, 'post', bm, null)
+    })
   }
 
   updateBookmark(bm) {
-    fetchJSON('/api/bookmark/update', (result) => {
+    fetchJSON('/api/bookmark/update', 'post', 'json', bm, this.ctx.authToken, (result) => {
       if (result === false)
         this.setState({ alert: { title: "Server error" } })
       else if (result === true)
@@ -152,11 +158,11 @@ export default class DatabaseUI extends React.Component {
           text: err.toString()
         }
       })
-    }, 'post', bm, null)
+    })
   }
 
   deleteBookmark(bm) {
-    fetchJSON('/api/bookmark/delete/' + bm.ID, (result) => {
+    fetchJSON('/api/bookmark/delete/' + bm.ID, 'post', 'json', null, this.ctx.authToken, (result) => {
       if (result === false)
         this.setState({ alert: ["Server error", "Failed to delete a bookmark."] })
       else {
@@ -170,7 +176,18 @@ export default class DatabaseUI extends React.Component {
           text: err.toString()
         }
       })
-    }, 'post', bm, null)
+    })
+  }
+
+  onTagClicked(tag) {
+    const i = this.state.filterTags.indexOf(tag)
+    let selected
+    if (i == -1) {
+      selected = [...this.state.filterTags, tag]
+    } else {
+      selected = this.state.filterTags.filter((t) => t !== tag)
+    }
+    this.setState({ filterTags: selected })
   }
 
   render() {
@@ -195,13 +212,14 @@ export default class DatabaseUI extends React.Component {
         <TagList
           all={this.state.tags}
           selected={this.state.filterTags}
-          onChange={(selected) => this.setState({ filterTags: selected })} />
+          onTagClicked={this.onTagClicked} />
         <BookmarkList
           bookmarks={this.state.bookmarks}
           filterText={this.state.filterText}
           filterTags={this.state.filterTags}
-          onDeleteClicked={(bm) => this.deleteBookmark(bm)}
-          onEdit={(bm) => this.setState({ editBookmark: bm })} />
+          onEdit={(bm) => this.setState({ editBookmark: bm })}
+          onDelete={(bm) => this.deleteBookmark(bm)}
+          onTagClicked={this.onTagClicked} />
       </React.Fragment>
     )
   }

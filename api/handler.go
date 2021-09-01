@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"github.com/terotoi/marque/core"
 	"github.com/jmoiron/sqlx"
+	"github.com/terotoi/marque/core"
 )
 
 // AnonAPIfunc a http.HandlerFunc with an error code.
@@ -43,7 +43,7 @@ func createHandler(contentType string, cfg *core.Config, db *sqlx.DB) func(AnonA
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(false)
 
-				//log.Printf("%s %s %s %s", r.RemoteAddr, r.Method, r.URL, err.Error())
+				log.Printf("%s %s %s %s", r.RemoteAddr, r.Method, r.URL, err.Error())
 				log.Print(err.Error())
 				log.Print(string(debug.Stack()))
 			}

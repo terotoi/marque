@@ -74,11 +74,11 @@ func (bm *Bookmark) CleanTags() {
 }
 
 // Insert a bookmark into the database.
-func (bm *Bookmark) Insert(db *sqlx.DB) error {
+func (bm *Bookmark) Insert(tx *sqlx.Tx) error {
 	query := "INSERT INTO bookmarks " + bookmarkInsertNames + " VALUES " +
 		bookmarkInsertParams
 
-	res, err := db.Exec(query, bm.UserID, bm.Title, bm.URL,
+	res, err := tx.Exec(query, bm.UserID, bm.Title, bm.URL,
 		bm.TagsText, bm.Notes, bm.Updated)
 	if err != nil {
 		return err
@@ -92,9 +92,9 @@ func (bm *Bookmark) Insert(db *sqlx.DB) error {
 }
 
 // Update a bookmark in the database.
-func (bm *Bookmark) Update(db *sqlx.DB) error {
+func (bm *Bookmark) Update(tx *sqlx.Tx) error {
 	query := "UPDATE bookmarks SET " + bookmarkUpdateParams + " WHERE id=?"
-	_, err := db.Exec(query, bm.UserID, bm.Title, bm.URL, bm.TagsText,
+	_, err := tx.Exec(query, bm.UserID, bm.Title, bm.URL, bm.TagsText,
 		bm.Notes, bm.Updated, bm.ID)
 	//affect, err := res.RowsAffected()
 	if err != nil {
@@ -104,9 +104,9 @@ func (bm *Bookmark) Update(db *sqlx.DB) error {
 }
 
 // Delete deletes a bookmark from the database.
-func (bm *Bookmark) Delete(db *sqlx.DB) error {
+func (bm *Bookmark) Delete(tx *sqlx.Tx) error {
 	query := "DELETE FROM bookmarks WHERE id=?"
-	if _, err := db.Exec(query, bm.ID); err != nil {
+	if _, err := tx.Exec(query, bm.ID); err != nil {
 		log.Printf("Bookmark.Delete: %s", err.Error())
 		return err
 	}
@@ -115,13 +115,13 @@ func (bm *Bookmark) Delete(db *sqlx.DB) error {
 }
 
 // BookmarkByID returns a Bookmark by ID.
-func BookmarkByID(id int64, db *sqlx.DB) (*Bookmark, error) {
+func BookmarkByID(id int64, tx *sqlx.Tx) (*Bookmark, error) {
 	bm := Bookmark{}
 
 	query := "SELECT " + bookmarkSelectFields + " FROM bookmarks " +
 		" WHERE bookmarks.id=? LIMIT 1"
 
-	if err := db.Get(&bm, query, id); err != nil {
+	if err := tx.Get(&bm, query, id); err != nil {
 		return nil, err
 	}
 	bm.Tags = tagsFromDB(bm.TagsText)
@@ -130,13 +130,13 @@ func BookmarkByID(id int64, db *sqlx.DB) (*Bookmark, error) {
 }
 
 // BookmarkByURL returns all bookmark with matching URL, or nil.
-func BookmarkByURL(url string, db *sqlx.DB) (*Bookmark, error) {
+func BookmarkByURL(url string, tx *sqlx.Tx) (*Bookmark, error) {
 	bms := []Bookmark{}
 
 	query := "SELECT " + bookmarkSelectFields + " FROM bookmarks " +
 		" WHERE bookmarks.url=? AND user_id IS NULL LIMIT 1"
 
-	if err := db.Select(&bms, query, url); err != nil {
+	if err := tx.Select(&bms, query, url); err != nil {
 		return nil, err
 	}
 
@@ -147,27 +147,12 @@ func BookmarkByURL(url string, db *sqlx.DB) (*Bookmark, error) {
 	return nil, nil
 }
 
-// BookmarksAll returns all bookmarks.
-func BookmarksAll(orderBy string, db *sqlx.DB) ([]*Bookmark, error) {
-	var bms []*Bookmark
-
-	if err := db.Select(&bms, "SELECT "+bookmarkSelectFields+
-		" FROM bookmarks "+orderBy); err != nil {
-		return nil, err
-	}
-
-	for _, bm := range bms {
-		bm.Tags = tagsFromDB(bm.TagsText)
-	}
-	return bms, nil
-}
-
 // BookmarksAllForUser returns all bookmarks owned by a user or not owned
 // by anone (user is NULL).
-func BookmarksAllForUser(userID int64, orderBy string, db *sqlx.DB) ([]*Bookmark, error) {
+func BookmarksAllForUser(userID int64, orderBy string, tx *sqlx.Tx) ([]*Bookmark, error) {
 	var bms []*Bookmark
 
-	if err := db.Select(&bms, "SELECT "+bookmarkSelectFields+
+	if err := tx.Select(&bms, "SELECT "+bookmarkSelectFields+
 		" FROM bookmarks WHERE user_id=? OR user_id IS NULL "+orderBy, userID); err != nil {
 		return nil, err
 	}

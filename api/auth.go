@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/terotoi/marque/jwt"
 	"github.com/terotoi/marque/models"
-	"github.com/jmoiron/sqlx"
 )
 
 type jwtAuth struct {
@@ -17,7 +17,7 @@ type jwtAuth struct {
 // Decode a JWT authorizatoin payload and uses the "sub" claim
 // to find a correspong user object.
 // If user is not found returns nil, "user not found" error
-func userByToken(payload []byte, db *sqlx.DB) (*models.User, error) {
+func userByToken(payload []byte, db *sqlx.Tx) (*models.User, error) {
 	var auth jwtAuth
 
 	if err := json.Unmarshal(payload, &auth); err != nil {
@@ -39,11 +39,11 @@ func userByToken(payload []byte, db *sqlx.DB) (*models.User, error) {
 
 // Decode HTTP Authorization header with Bearer JWT Token.
 // See userByToken for more details.
-func userByAuth(r *http.Request, secret []byte, db *sqlx.DB) (*models.User, error) {
+func userByAuth(r *http.Request, secret []byte, tx *sqlx.Tx) (*models.User, error) {
 	payload, err := jwt.ParseAuthorization(r.Header.Get("Authorization"), secret)
 	if err != nil {
 		return nil, err
 	}
 
-	return userByToken(payload, db)
+	return userByToken(payload, tx)
 }
