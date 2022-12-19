@@ -15,7 +15,7 @@ public/dist/ui.js: ui/*.js
 	npx webpack ${JSFLAGS}
 
 node_modules:
-	yarn install
+	npm install
 
 prod: JSFLAGS = --mode=production
 prod: node_modules public/dist/ui.js marque
@@ -29,10 +29,7 @@ jsprod: node_modules
 	npx webpack --mode=production
 
 clean:
-	rm -f ./public/dist/*.js ./public/fonts/* marque
-
-distclean: clean
-	rm -rf ./node_modules 
+	rm -rf ./public/dist/*.js ./public/fonts/* marque node_modules
 
 watchdev:
 	find . -iname '*.go' | entr -r make servedev

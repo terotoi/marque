@@ -3,7 +3,7 @@
 
 Marque is a bookmark manager which can be used through a web browser.
 
-Requirements: go 1.17, node.js 1.10+, yarn or npm and optionally make.
+Requirements: go 1.17, node.js 1.10+ and make.
 
 ## Installation ##
 
