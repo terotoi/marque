@@ -1,38 +1,39 @@
 
-.PHONY: all prod jsdev servedev serve clean_ui clean install watch
+.PHONY: all prod prodjs watchdev \
+	docker_demo docker_demo_db demo demo_gz
 
-all: prod
+all: public/dist/ui.js marque
 
-servedev: marque
+prod: prodjs marque
+
+marque: *.go
+	go build -o marque
+
+rundev: all
 	./marque serve
 
-marque: *.go */*.go
-	go build
+watchdev:
+	find . \( \
+		-path './ui/*.js' -or \
+		-path './ui/*.jsx' -or \
+		-path './ui/*/*.jsx' -or \
+		-path './*.go' \) | \
+		entr -r make rundev
 
-marque_prod: *.go
+public/dist/ui.js: node_modules ui/*.js ui/*.jsx ui/*/*.jsx
+	npm run build
 
-public/dist/ui.js: ui/*.js
-	npx webpack ${JSFLAGS}
-
-node_modules:
+node_modules: package.json
 	npm install
 
-prod: JSFLAGS = --mode=production
-prod: node_modules public/dist/ui.js marque
-
-jsdev: node_modules
-	rm -rf public/dist/*.js
-	npx webpack --mode=development -w
-
-jsprod: node_modules
-	rm -f public/dist/ui.js
-	npx webpack --mode=production
-
 clean:
-	rm -rf ./public/dist/*.js ./public/fonts/* marque node_modules
+	rm -rf \
+		public/dist/* \
+		node_modules \
+		marque
 
-watchdev:
-	find . -iname '*.go' | entr -r make servedev
+### Docker images ###
+
 
 docker: prod
 	etc/create_docker_config.sh

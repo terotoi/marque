@@ -1,4 +1,12 @@
 {
+	"name": "marque",
+	"private": true,
+	"scripts": {
+		"build": "esbuild ui/init.jsx --bundle --sourcemap --outfile=./public/dist/ui.js --loader:.woff2=file --loader:.woff=file",
+		"dist": "esbuild ui/init.jsx --bundle --minify --outfile=./public/dist/ui.js --loader:.woff2=file --loader:.woff=file"
+	},
+	"author": "Tero Oinas oinas.tero@gmail.com",
+	"license": "GPL2",
 	"dependencies": {
 		"@material-ui/core": "^4.12.3",
 		"@material-ui/icons": "^4.9.1",
@@ -8,14 +16,6 @@
 		"typeface-roboto": "^1.1.13"
 	},
 	"devDependencies": {
-		"@babel/core": "^7.15.0",
-		"@babel/preset-env": "^7.15.0",
-		"@babel/preset-react": "^7.14.5",
-		"babel-loader": "^8.0.6",
-		"css-loader": "^6.2.0",
-		"file-loader": "^6.0.0",
-		"style-loader": "^3.2.1",
-		"webpack": "^5.51.1",
-		"webpack-cli": "^4.8.0"
+		"esbuild": "*"
 	}
 }
