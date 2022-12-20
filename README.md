@@ -19,7 +19,7 @@ The resulting binary is **marque**.
 
 Run make with the following command in order to create an initial configuration file:
 
-`marque createconfig`
+`./marque createconfig`
 
 Edit the configuration file (fill in initial_user and initial_password) and the start the program using:
 
