@@ -34,14 +34,9 @@ clean:
 
 ### Docker images ###
 
-
 docker: prod
 	etc/create_docker_config.sh
 	docker build -t marque .
-
-docker_azure: prod
-	etc/create_docker_config.sh
-	docker build --build-arg azure=true -t marque .
 
 docker_run: docker
 	docker stop marque || true

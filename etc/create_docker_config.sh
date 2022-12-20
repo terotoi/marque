@@ -1,5 +1,5 @@
 #!/bin/bash
-CONFIG="etc/config_docker.json"
+CONFIG="etc/config.json"
 
 if [ -f "$CONFIG" ]; then
 	echo "${CONFIG} already exists."

@@ -47,16 +47,8 @@ Or just:
 
 `make docker_launch`
 
-## Building a docker image for Azure ##
-
-It is possible to build a docker image that is compatible with Azure's storage accounts. Type:
-
-`make docker_azure`
-
-And push the marque:latest image to azure. The image expects a writable storage to be mounted in /data.
-
 ## Using marque ##
 
-Use your favorite browser to navigate to http://localhost:9998/
+Use your favorite browser to navigate to http://localhost:9999/
 
 

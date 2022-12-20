@@ -11,5 +11,5 @@ import (
 func setupRoutes(site *core.Site, db *sqlx.DB) {
 	api.SetupRoutes(site.Config, site, db)
 
-	http.Handle("/", http.FileServer(http.Dir("./public")))
+	http.Handle("/", http.FileServer(http.Dir(site.Config.PublicDir)))
 }

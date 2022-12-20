@@ -1,6 +1,4 @@
-FROM debian:stable
-ARG azure
-ENV IS_AZURE=$azure
+FROM ubuntu:22.04
 
 # Needed for downloading titles.
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
@@ -12,9 +10,8 @@ WORKDIR "/dist"
 
 COPY "marque" "."
 COPY "public" "./public"
-COPY "etc/config_docker.json" "./config.json"
-COPY "etc/init.sh" "."
+COPY "etc/config.json" "/data/config.json"
 
 EXPOSE 9999
 
-CMD ["bash", "./init.sh"]
+CMD ["bash", "-c", "/dist/marque -c /data/config.json serve"]

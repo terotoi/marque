@@ -20,6 +20,7 @@ type Config struct {
 	JWTSecret       string `json:"jwt_secret"`
 	InitialUser     string `json:"initial_user"`
 	InitialPassword string `json:"initial_password"`
+	PublicDir       string `json:"public_dir"`
 }
 
 // LoadConfig loads the configuration file.
@@ -79,6 +80,7 @@ func GenerateConfig(cfgFile, dataDir, listenAddress string, createInitialUser bo
 		DatabaseConfig: fmt.Sprintf("file:%s/marque.db?cache=shared\u0026mode=rwc", dataDir),
 		PasswordSecret: pwSecret,
 		JWTSecret:      jwtSecret,
+		PublicDir:      "./public",
 	}
 
 	if createInitialUser {

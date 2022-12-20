@@ -6,3 +6,4 @@ public/dist
 marque
 pkged.go
 etc/config_docker.json
+etc/config.json
